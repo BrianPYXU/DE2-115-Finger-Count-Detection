@@ -1,0 +1,38 @@
+# Quartus-generated state and programming artifacts
+/db/
+/incremental_db/
+/output_files/
+*.qws
+*.bak
+*.bak.*
+*.sof
+*.pof
+*.jic
+*.rbf
+*.rpt
+*.smsg
+*.jdi
+*.done
+*.qdf
+*.qar
+*.qip.bak
+
+# Keep curated evidence reports, including reports ending in .rpt
+!docs/evidence/**/*.rpt
+
+# Simulation output and local tools
+/sim/build/
+*.vvp
+*.vcd
+*.fst
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local packaging instructions and export copies
+/_github_upload/
+/GITHUB_PREPARATION_zh-TW.md
+/scripts/export-github.ps1
