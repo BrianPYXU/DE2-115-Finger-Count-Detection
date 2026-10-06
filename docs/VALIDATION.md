@@ -1,36 +1,26 @@
-# Hardware results and build summaries
+# Hardware Demonstration
 
-## Reported board demonstration
+We tested the system on a DE2-115 board with a TRDB-D5M camera, using a green cloth background. The examples below cover gestures from 0 to 5.
 
-The project was tested on a Terasic DE2-115 with a TRDB-D5M camera and a green cloth as the background. The system successfully recognized finger counts **0–5**, with occasional incorrect results for the closed-fist/zero case.
+Each row contains three views of one gesture: an external photograph of the hand, the processed image on the VGA monitor, and the board display. These are demonstration photographs, not three separate test trials.
 
-These results describe the project team's qualitative functional demonstration. Trial counts, aggregate accuracy, measured processing latency, and frame rate were not recorded here.
+The white area on the monitor shows the hand mask. A cyan cross and magenta/yellow circles visualize the estimated palm center and sampling geometry. On the board, **HEX0, the rightmost display, shows the finger count**. The other digits are debug outputs, not part of a multi-digit finger count.
 
-## Expected operating conditions
+| Count | Hand gesture | VGA mask and overlay | Board output |
+| --- | --- | --- | --- |
+| 0 | <img src="media/count-0-hand.jpg" width="180" alt="Closed-fist gesture"> | <img src="media/count-0-screen.jpg" width="180" alt="Processed closed-fist image"> | <img src="media/count-0-board.jpg" width="180" alt="HEX0 showing 0"> |
+| 1 | <img src="media/count-1-hand.jpg" width="180" alt="One extended finger"> | <img src="media/count-1-screen.jpg" width="180" alt="Processed one-finger image"> | <img src="media/count-1-board.jpg" width="180" alt="HEX0 showing 1"> |
+| 2 | <img src="media/count-2-hand.jpg" width="180" alt="Two extended fingers"> | <img src="media/count-2-screen.jpg" width="180" alt="Processed two-finger image"> | <img src="media/count-2-board.jpg" width="180" alt="HEX0 showing 2"> |
+| 3 | <img src="media/count-3-hand.jpg" width="180" alt="Three extended fingers"> | <img src="media/count-3-screen.jpg" width="180" alt="Processed three-finger image"> | <img src="media/count-3-board.jpg" width="180" alt="HEX0 showing 3"> |
+| 4 | <img src="media/count-4-hand.jpg" width="180" alt="Four extended fingers"> | <img src="media/count-4-screen.jpg" width="180" alt="Processed four-finger image"> | <img src="media/count-4-board.jpg" width="180" alt="HEX0 showing 4"> |
+| 5 | <img src="media/count-5-hand.jpg" width="180" alt="Five extended fingers"> | <img src="media/count-5-screen.jpg" width="180" alt="Processed five-finger image"> | <img src="media/count-5-board.jpg" width="180" alt="HEX0 showing 5"> |
 
-- One hand, with the palm facing the camera and near the image center.
-- A green background and a sufficiently complete foreground mask.
-- Visible gaps between extended fingers.
-- An arm entering through an image edge, with the palm and fingertips inside the frame.
+## Observed limitations
 
-## Known limitations
+The selected examples show correct outputs, but the closed-fist/zero gesture was not always recognized correctly during testing. Bringing the hand too close to the camera could also cause errors. Background color and skin-color differences made segmentation difficult, which is why we used the green background.
 
-The zero case can occasionally be misclassified. Lighting and background affect the RGB-threshold mask. Touching fingers, occlusion, perspective changes, short thumbs, and protruding folded fingers can affect the geometric count. Temporal voting smooths fluctuations but does not correct consistently incorrect mask geometry.
+These photographs show the capstone hardware demonstration. They do not establish an accuracy percentage, frame rate, or latency, and do not identify the exact source revision programmed on the board.
 
-## Supplied Quartus build summaries
+## FPGA build information
 
-The preserved [Fitter summary](evidence/fitter_supplied.summary) and [Timing Analyzer summary](evidence/timing_supplied.summary) are compiler-generated artifacts supplied with the project, rather than recognition benchmarks.
-
-| Resource | Used / available |
-| --- | ---: |
-| Logic elements | 8,002 / 114,480 (7%) |
-| Dedicated logic registers | 2,823 / 114,480 (2%) |
-| Memory bits | 249,400 / 3,981,312 (6%) |
-| Embedded 9-bit multiplier elements | 21 / 532 (4%) |
-| PLLs | 1 / 4 (25%) |
-
-The supplied timing summary has nonnegative reported slack, with a minimum of 0.089 ns. These are supplied build summaries; compilation was not rerun during documentation preparation. External camera, SDRAM, and VGA I/O constraints remain incomplete, so this is not a complete board-level timing sign-off.
-
-## Future evaluation
-
-A future benchmark could record repeated trials for each finger count, lighting and camera conditions, errors by class, and measured latency. The current portfolio presents the working hardware demonstration and its observed limitations without assigning an unmeasured accuracy percentage.
+The supplied [Fitter summary](evidence/fitter_supplied.summary) reports 8,002 logic elements (7%) and 249,400 memory bits (6%). The [timing summary](evidence/timing_supplied.summary) has a minimum reported slack of 0.089 ns. These are existing compiler reports; compilation was not rerun while preparing this documentation. External camera, SDRAM, and VGA I/O timing remains incompletely constrained.

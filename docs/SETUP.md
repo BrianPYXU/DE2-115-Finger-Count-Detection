@@ -64,7 +64,9 @@ LEDG[8] indicates stabilized-result validity, LEDG[7] raw validity, LEDG[6] hand
 
 Use a single hand against a green background. Keep the palm near the image center and the fingertips inside the image. Let the arm enter from an image edge and keep visible gaps between extended fingers.
 
-Start by inspecting the binary mask with SW17. Then inspect the palm marker and acceptance circles with SW15. Check raw HEX1 and the error code before judging the stabilized HEX0 result. Hold each pose long enough to observe multiple analyses; test 0–5 in vertical, horizontal, and diagonal orientations.
+Start by inspecting the binary mask with SW17. Then inspect the palm marker and acceptance circles with SW15. Check raw HEX1 and the error code before judging the stabilized HEX0 result. Hold each pose long enough to observe multiple analyses, and check counts 0–5.
+
+The team observed incorrect counts when the hand was too close to the camera. If this occurs, move the hand farther away and inspect the mask and palm estimate again. Additional evaluation could compare different hand distances and orientations; the photographs in this repository do not establish performance across all such conditions.
 
 Record both successful and failed trials, camera placement, lighting, number of people, number of repetitions, and the exact source revision. See [validation](VALIDATION.md) for the current evidence limits.
 

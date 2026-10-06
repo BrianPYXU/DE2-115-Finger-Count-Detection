@@ -1,8 +1,8 @@
 # FPGA Finger Counting on the DE2-115
 
-A collaborative undergraduate capstone project that implements a camera-to-display finger-counting pipeline in Verilog for the Terasic DE2-115 and TRDB-D5M camera.
+My teammate and I built a finger-counting system in Verilog using a Terasic DE2-115 board and a TRDB-D5M camera. The monitor shows the processed hand image, and the board displays the detected count.
 
-The design segments a hand, estimates its palm and wrist, and counts extended fingers from circular samples of the binary silhouette. The result is stabilized over successive analyses and displayed on the board's seven-segment display. VGA output provides color, mask, and geometry views for debugging.
+I chose this capstone to practice writing RTL because I want to work in IC design. Our project schedule did not allow a chip tape-out, so we used an FPGA to implement and test the design on hardware.
 
 **Review guide:** read the [project summary](docs/PROJECT_SUMMARY.md), then explore the [architecture](docs/ARCHITECTURE.md) and [hardware results](docs/VALIDATION.md).
 

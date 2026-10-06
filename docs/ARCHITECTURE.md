@@ -18,9 +18,9 @@ The top-level `DE2_115_CAMERA` integrates camera configuration, capture, RAW-to-
 
 ## Palm and wrist estimation
 
-`hand_distance_circle.v` performs forward and backward passes of an integer chamfer distance transform, using costs 3 and 4 for axial and diagonal neighbors. A maximum-distance point inside the central search region provides a palm-center estimate; the radius is derived from the distance divided by three.
+`hand_distance_circle.v` performs forward and backward passes of an integer chamfer distance transform, using costs 3 and 4 for axial and diagonal neighbors. Within the central search region, the foreground point with the greatest estimated distance to the background provides the palm-center estimate. The radius is derived from that distance divided by three.
 
-The analyzer searches the central 75% of each image dimension for the palm. The default accepted radius is 5–40 analysis pixels. Foreground contact with an image edge provides a wrist-entry estimate, which is required by default.
+The analyzer searches the central 75% of each image dimension for the palm. The default accepted radius is 5–40 analysis pixels. It selects the image side with the most foreground edge contact and uses the midpoint of the contact span to estimate the wrist entry. The direction from the palm center to that entry guides wrist-arc removal. A wrist-entry estimate is required by default.
 
 ## Circular sampling and counting
 
