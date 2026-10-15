@@ -2,38 +2,74 @@
 
 ## Project goal
 
-We chose this project to practice RTL design and gain experience implementing and testing a hardware system. Image processing provided visible results: we could compare the hand gesture, the processed mask on a monitor, and the count displayed by the FPGA board.
+My teammate and I chose this undergraduate capstone to practice RTL design and gain experience building a hardware system. Image processing gave us a visible way to inspect our work: a hand gesture could be compared with the binary mask on a monitor and the count on the FPGA board.
 
-We considered detecting left or right movement, then chose finger counting to include more shape analysis. This required us to separate the hand from the background, estimate the palm, and distinguish fingers from the wrist. We used arithmetic and geometric rules that could be implemented directly in RTL. The design does not use a trained neural network.
+We initially considered detecting left or right movement, then chose finger counting to include more shape analysis. The task required us to separate the hand from the background, estimate the palm, distinguish fingers from the wrist, and stabilize the displayed result.
 
-## How the system works
+The capstone has been submitted. This report describes the implementation and evidence available in the repository.
 
-The project uses a DE2-115 FPGA board, a TRDB-D5M camera, and a VGA monitor. The analysis is written in Verilog and uses the board's seven-segment display to show the count.
+## System and implementation
 
-First, RGB thresholds produce a binary hand mask. A distance transform estimates the palm center and size. The system then samples the silhouette along circles around the palm, excludes the wrist region, and counts the remaining finger candidates. Voting over successive analysis results helps stabilize the displayed count.
+The system uses a Terasic DE2-115 FPGA board, a TRDB-D5M camera, and a VGA monitor. Verilog logic analyzes a binary hand mask and sends the count to the board's seven-segment display.
 
-The camera and display path includes existing Terasic/Altera support code. Our work focused on the hand-analysis path and its integration with the board outputs. See [architecture](ARCHITECTURE.md) for the source modules and parameters.
+The processing path is:
 
-## Problems we encountered
+1. Apply RGB thresholds to obtain a foreground mask.
+2. Sample the 800 × 600 input into a 160 × 120 analysis mask.
+3. Estimate the palm center and radius using a two-pass integer distance transform.
+4. Estimate the wrist direction from foreground contact near an image edge.
+5. Sample circles around the palm, remove the connected wrist arc, and count the remaining finger candidates.
+6. Use temporal voting to stabilize the output.
 
-### Separating the hand from the background
+The camera, VGA, SDRAM, and generated IP infrastructure includes inherited Terasic/Altera material. Our work focused on the hand-analysis path and its integration with the board outputs. See [architecture](ARCHITECTURE.md) for the modules and parameters, and [source attribution](../THIRD_PARTY_NOTICES.md) for provenance.
 
-The most difficult part was deciding which pixels belonged to the hand. Skin color varies between people, and some background colors could also pass the color thresholds. When the mask was wrong, the later finger-counting steps could give the wrong result even if the hand gesture was clear to us.
+## Problems and design decisions
 
-We used a fixed green cloth background for testing. This made it easier to separate the hand from the background, but also limited the conditions under which we demonstrated the system. We did not establish that it works across arbitrary skin tones or backgrounds.
+### Segmentation affected everything downstream
 
-### Avoiding an extra count from the wrist
+Deciding which pixels belonged to the hand was the main practical difficulty. Skin color, lighting, and similar-colored background objects could change the binary mask. Once fingers were missing or connected in the mask, later geometric processing could give a wrong count even when the original hand pose was clear to us.
 
-The wrist could be counted as another finger. To address this, we used the estimated palm center together with the part of the foreground touching an image edge to estimate the wrist direction. The counting logic excludes the connected wrist arc from the circular samples.
+We used a green-cloth background for hardware testing. The VGA mask view let us inspect the foreground before interpreting the final count. The palm marker and sampling circles provided another view of how the geometry was behaving.
 
-This helped reduce the wrist problem in our tests. However, moving the hand too close to the camera could still produce incorrect counts.
+This setup made the demonstration easier to inspect. It also limited what the results could establish: we did not demonstrate reliable operation across arbitrary people, lighting, or backgrounds.
 
-## Results and future work
+### The wrist could look like another finger
 
-We demonstrated finger counts from 0 to 5 against the green background. The [photo examples](VALIDATION.md) show the actual gestures, processed monitor views, and board outputs. The closed-fist/zero case was occasionally misclassified during testing. We did not record enough repeated trials to report an accuracy percentage.
+Circular samples can intersect the wrist as well as the fingers. The implementation estimates where the arm enters the image and uses that direction to remove the connected wrist arc on each sampled ring.
 
-A useful next step would be to investigate the near-camera failure by comparing the mask, estimated palm position, and count at different hand distances. This would help determine whether to improve the geometry rules or detect when the hand is outside the usable range. Repeated trials would also allow a more systematic evaluation of the zero-case errors.
+The 2R and 1.875R circles provide accepted finger candidates. The 1.5R circle is sampled, but inner-only arcs do not independently increase the count. Width filtering and cross-ring merging reduce unwanted and duplicate candidates.
+
+The project report previously identified wrist miscounting as a practical problem. The source documents how it is addressed, but the repository does not contain a controlled before/after experiment measuring the improvement.
+
+### A stable display can retain an earlier result
+
+The voting logic uses an eight-analysis window and a five-vote acceptance threshold. A count that reaches the threshold becomes the displayed result.
+
+When a later window has no count reaching five votes, the submitted logic retains the last accepted count and its valid flag. Thus, the displayed count can remain unchanged while the raw count and leading vote support change. Movement reset, invalid-result expiry, and valid no-hand analyses have separate behavior.
+
+This is part of the implemented display policy. The [architecture](ARCHITECTURE.md#stabilization-and-diagnostics) and [setup guide](SETUP.md#interpreting-the-stabilized-display) explain how to interpret it.
+
+## Results and evidence
+
+The [hardware examples](VALIDATION.md) show finger counts from 0 to 5 against the green background. Each gesture has an external hand photograph, a VGA view, and a board-output photograph.
+
+The closed-fist/zero case was occasionally misclassified. Bringing the hand too close to the camera could also produce incorrect counts. No repeated-trial totals were recorded from which to calculate accuracy, and measured frame rate and response latency are unavailable.
+
+The supplied Quartus reports list resource use and internal timing results for a recorded build. The photographs and reports have not been tied to an exact source revision. They are preserved as project evidence with those limits stated explicitly.
+
+## What this project demonstrates
+
+The project brings together geometric image analysis, sequential RTL, frame buffering, clock-domain handshakes, and board-level diagnostics. Its most useful engineering lesson is the dependence between stages: a stable numeric output is easier to understand when the mask and intermediate geometry can also be inspected.
+
+A useful later investigation would compare the mask, palm estimate, and sampled arcs at different hand distances, particularly for zero-count failures. Such an evaluation is future work and is not included in the submitted results.
 
 ## Collaboration
 
-This project was developed jointly by two students, with most work carried out together. The documentation describes the team's shared work. The source files retain the original notices for inherited Terasic/Altera components; see [team acknowledgment](AUTHORS.md) and [third-party notices](../THIRD_PARTY_NOTICES.md).
+This was a two-student capstone, with most work carried out together. The report uses “we” for the team's shared work rather than assigning whole modules to one person. See [team acknowledgment](AUTHORS.md).
+
+## Further reading
+
+- [Project overview](PORTFOLIO.md)
+- [Architecture and implemented behavior](ARCHITECTURE.md)
+- [Hardware examples and evidence limits](VALIDATION.md)
+- [Setup and board operation](SETUP.md)

@@ -34,7 +34,21 @@ This is an extension-based geometric rule. The mask contains no finger-joint inf
 
 ## Stabilization and diagnostics
 
-`hand_temporal_vote.v` uses an eight-analysis window with a five-vote acceptance threshold. Invalid results expire, a large palm displacement clears earlier votes, and no-hand results clear the output. Raw and stabilized results are exposed separately.
+[hand_temporal_vote.v](../hand_detection/hand_temporal_vote.v) uses an eight-analysis window with a five-vote acceptance threshold. Its implemented behavior is:
+
+| Situation | Display behavior |
+| --- | --- |
+| A candidate reaches at least five votes | Accept that count and mark the display valid |
+| A later window has no candidate reaching five votes | Retain the last accepted count and its valid flag |
+| A sufficiently large palm displacement is detected | Clear the earlier voting context and require a newly accepted result |
+| Six consecutive invalid analyses occur | Invalidate the stabilized display |
+| A valid no-hand analysis occurs | Clear the voting history and display zero immediately |
+
+The invalid limit counts completed invalid analyses, not elapsed time. A low-support window does not by itself invalidate an already accepted result.
+
+`support` reports the leading vote count from the latest completed vote scan. When the display retains an earlier result, that support need not belong to the displayed count. The raw count, analysis error code, vote support, and stabilized result should therefore be interpreted together.
+
+At the top level, `E` is shown when `display_valid` is zero. It is not an automatic indication of every window with fewer than five supporting votes.
 
 `hand_overlay.v` aligns RGB, validity, and debug graphics through four stages. The overlay marks the palm center and the two acceptance circles. It does not display measured confidence or a calibrated probability.
 
@@ -53,12 +67,26 @@ This is an extension-based geometric rule. The mask contains no finger-joint inf
 | `INVALID_LIMIT` | 6 | Invalid-analysis expiry threshold |
 | `MOVE_LIMIT` | 20 | Palm-displacement reset threshold |
 
-When changing `MIN_EXTENSION_EIGHTHS`, update both the analyzer and overlay defaults. The sampling geometry is fixed at 128 directions and must remain consistent with the lookup table. Changing resolution or scale requires changes to capture, coordinate alignment, mask dimensions, and tests together.
+## Configuration scope
+
+This snapshot uses 800 × 600 input, five-pixel subsampling, a 160 × 120 mask, and 128 angular directions. These are the supported settings described by the project materials.
+
+Although `hand_stream_adapter.v` declares a `SCALE` parameter, the implementation uses constants specialized for division and sampling by five. Changing that parameter alone does not change the sampling ratio. The inherited `VGA_640x480p60` macro also does not reconfigure the complete hand-analysis path; selecting it alone is not a supported resolution change for this snapshot.
+
+The analyzer and overlay each have a `MIN_EXTENSION_EIGHTHS` default of 15. The angle storage, indices, and lookup table are specialized for 128 directions. These implementation constraints matter when reading the exposed parameters; they are not a claim of general support for arbitrary resolutions or sampling geometries.
+
+## Timing evidence
+
+The supplied constraints define board/camera clocks and selected crossing constraints. They do not fully specify external camera, SDRAM, and VGA I/O delays. The camera clock period is a conservative configured bound, not a measured frame rate or end-to-end latency.
+
+The [build evidence](VALIDATION.md#fpga-build-information) must be interpreted within that constraint coverage. Internal nonnegative slack does not establish complete board-level timing closure.
 
 ## Source reading order
 
-1. `DE2_115_CAMERA.v`: how the system is wired.
-2. `hand_detection/hand_pipeline.v`: how capture, analysis, and voting connect.
-3. `hand_detection/hand_distance_circle.v`: the counting algorithm.
-4. `hand_detection/hand_mask_buffer.v` and `hand_frame_ram.v`: frame integrity and ownership.
-5. `hand_detection/hand_temporal_vote.v`: stabilized output.
+1. [DE2_115_CAMERA.v](../DE2_115_CAMERA.v): how the system is wired.
+2. [hand_pipeline.v](../hand_detection/hand_pipeline.v): how capture, analysis, and voting connect.
+3. [hand_distance_circle.v](../hand_detection/hand_distance_circle.v): the counting algorithm.
+4. [hand_mask_buffer.v](../hand_detection/hand_mask_buffer.v) and [hand_frame_ram.v](../hand_detection/hand_frame_ram.v): frame integrity and ownership.
+5. [hand_temporal_vote.v](../hand_detection/hand_temporal_vote.v): stabilized output.
+
+See [board operation](SETUP.md) for practical display interpretation and [the project report](PROJECT_SUMMARY.md) for the team's engineering observations.
