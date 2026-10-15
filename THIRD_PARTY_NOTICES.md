@@ -10,7 +10,7 @@ The project builds on a DE2-115 camera/video example. Terasic copyright and perm
 
 The notices grant use and modification for synthesis on specified Terasic boards and development kits, and contain restrictions on other use, including duplication. The notices are preserved verbatim in the files.
 
-This draft does not establish a public-redistribution right for those sources. Before publishing the complete project publicly, confirm the applicable original distribution terms or obtain permission. Attribution alone does not establish permission to redistribute. If permission is unavailable, publish only team-owned material and documentation, and describe how authorized users obtain the vendor dependencies themselves. Such a reduced publication must clearly identify the missing board-integration dependencies.
+This notice does not establish a public-redistribution right for those sources. The applicable original distribution terms or additional permissions for their inclusion in this public repository remain to be confirmed. Attribution alone does not establish permission to redistribute. If permission is unavailable, publish only team-owned material and documentation, and describe how authorized users obtain the vendor dependencies themselves. Such a reduced publication must clearly identify the missing board-integration dependencies.
 
 ## Altera/Intel generated IP and project files
 
@@ -29,4 +29,4 @@ No MIT, Apache, or other blanket license has been applied. This file records pro
 - [Terasic](https://www.terasic.com/): board and camera vendor; obtain the applicable original board/camera package and its terms.
 - Quartus Prime Lite 18.1: external FPGA toolchain with Cyclone IV support.
 
-Retain all original copyright headers when exporting the project. Review code, media, and any report separately before public distribution.
+Retain all original copyright headers when exporting the project. Publication-rights review of the code, media, and any report remains separate; this provenance notice does not establish that such reviews have been completed.

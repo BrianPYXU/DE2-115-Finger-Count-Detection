@@ -30,7 +30,7 @@ See [all 0–5 examples and testing notes](docs/VALIDATION.md). These photograph
 | Analysis mask | 160 × 120; one sample every five pixels in both directions |
 | Analysis clock | 50 MHz on `CLOCK2_50` |
 | Counting method | Integer distance transform and multi-radius arc analysis |
-| Output | Stabilized 0–5 count; `E` when no reliable stabilized result is available |
+| Output | Last accepted stabilized 0–5 count; `E` when `display_valid` is zero |
 | Development tools | Quartus Prime Lite 18.1 |
 
 The analysis clock is the RTL processing clock; it is not a measured frame rate.
@@ -53,7 +53,7 @@ flowchart LR
 2. **Estimate the palm.** A forward/backward 3/4 chamfer distance transform estimates the distance from foreground pixels to the background. A maximum-distance point in the central search region gives the palm-center estimate and radius `R`.
 3. **Locate the wrist.** Foreground contact with an image edge provides a wrist-entry estimate.
 4. **Find finger candidates.** The analyzer samples 128 directions on circles at 2R, 1.875R, and 1.5R. It removes the connected wrist arc and filters the remaining foreground arcs. Only candidates reaching the 2R or 1.875R circles can add to the count; matching candidates across rings are merged.
-5. **Stabilize the output.** Temporal voting uses an eight-analysis window with a five-vote acceptance threshold. The raw count and stabilized output are available separately for debugging.
+5. **Stabilize the output.** Temporal voting uses an eight-analysis window with a five-vote acceptance threshold. After a count is accepted, a later window without five votes for any candidate retains the last accepted count and its valid flag. The raw count and stabilized output are available separately for debugging; see [display interpretation](docs/SETUP.md#interpreting-the-stabilized-display).
 
 Detailed parameters, assumptions, and module connections are in [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -119,8 +119,9 @@ Adjust the Quartus installation path to match your computer. The script writes a
 | SW17 on, SW15 off | Binary hand mask |
 | SW17 on, SW15 on | Mask with palm-center and acceptance-circle overlay |
 | SW14 on | Enable HEX1–HEX3 diagnostics |
-| HEX0 | Stabilized count, or `E` when unreliable |
-| HEX1 / HEX2 / HEX3 | Raw count / error code / vote support |
+| HEX0 | Last accepted stabilized count; `E` when `display_valid` is zero |
+| HEX1 / HEX2 | Raw count / analysis error code |
+| HEX3 | Leading vote count from the latest completed scan; it need not support a held HEX0 result |
 | KEY0 | Reset |
 
 Start by checking the mask, then the palm marker and circles, and finally the count. Full controls and error-code definitions are in [SETUP.md](docs/SETUP.md).
@@ -131,12 +132,13 @@ Start by checking the mask, then the palm marker and circles, and finally the co
 
 The saved examples cover gestures from 0 to 5. They show the hand pose, monitor view, and board display for each example; the three photographs of a gesture are not separate test trials.
 
-Observed difficulties include:
+Reported observations from hardware testing include:
 
 - Occasional errors for a closed fist or zero-finger gesture.
 - Incorrect counts when the hand is too close to the camera.
-- Segmentation changes caused by lighting, skin color, and background objects.
-- Touching, occluded, or insufficiently extended fingers producing ambiguous arcs.
+- Segmentation difficulties associated with skin-color and background differences, which motivated the green-background setup.
+
+Additional operating limits follow from the mask and geometric method: lighting changes can alter segmentation, and touching, occluded, or insufficiently extended fingers can produce ambiguous arcs. The repository does not include a controlled repeated-trial evaluation of these conditions.
 
 Temporal voting reduces fluctuation but cannot correct a consistently wrong mask or geometric interpretation. The photos are historical demonstration evidence and do not identify the exact source revision programmed on the board.
 
